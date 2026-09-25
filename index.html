@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PLAYTHEM.GAMES - Optimized Portal</title>
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        /* =========================================
+           CSS VARIABLES & BASE STYLES
+           ========================================= */
+        :root {
+            --bg-base: #0b0b0e;
+            --bg-surface: #1a1a24;
+            --bg-surface-hover: #2a2a36;
+            --text-primary: #ffffff;
+            --text-secondary: #9999a1;
+            --accent: #6343e9;
+            --accent-hover: #7b5df0;
+            --danger: #ff4b4b;
+            --header-height: 60px;
+            --bottom-nav-height: 65px;
+        }
+
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            padding-bottom: calc(var(--bottom-nav-height) + 20px);
+        }
+
+        /* =========================================
+           HEADER & AUTHENTICATION
+           ========================================= */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: linear-gradient(180deg, #1c1533 0%, var(--bg-base) 100%);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo { 
+            font-weight: 900; 
+            font-size: 18px; 
+            letter-spacing: -0.5px; 
+            display: flex; 
+            align-items: center; 
+            cursor: pointer; 
+        }
+        .logo-icon { 
+            font-size: 24px; 
+            margin-right: 8px; 
+        }
+
+        .auth-container { 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+        }
+        .auth-btn {
+            background: #fff;
+            color: #333;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: background 0.2s;
+        }
+        .auth-btn:hover { background: #f1f1f1; }
+        .auth-btn img { width: 16px; height: 16px; border-radius: 50%; }
+
+        /* Search Bar */
+        .search-container { padding: 0 20px; margin-bottom: 15px; }
+        .search-input {
+            width: 100%; 
+            padding: 12px 15px 12px 40px;
+            border-radius: 12px; 
+            border: 1px solid rgba(255,255,255,0.1);
+            background: var(--bg-surface) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%239999a1" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>') no-repeat 15px center;
+            color: var(--text-primary); 
+            font-size: 14px; 
+            outline: none;
+        }
+        .search-input:focus { border-color: var(--accent); }
+
+        /* =========================================
+           GENRE FILTER SCROLLBAR
+           ========================================= */
+        .genre-scroll {
+            display: flex; 
+            gap: 8px; 
+            overflow-x: auto; 
+            padding: 0 20px 15px 20px; 
+            scrollbar-width: none;
+        }
+        .genre-scroll::-webkit-scrollbar { display: none; }
+        .genre-chip {
+            background: var(--bg-surface); 
+            color: var(--text-secondary);
+            border: 1px solid rgba(255,255,255,0.08); 
+            padding: 6px 14px;
+            border-radius: 16px; 
+            font-size: 12px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            white-space: nowrap;
+        }
+        .genre-chip.active { 
+            background: var(--accent); 
+            color: white; 
+            border-color: var(--accent); 
+        }
+
+        /* =========================================
+           IMAGE PLACEHOLDER SYSTEM
+           ========================================= */
+        .img-placeholder {
+            width: 100%; 
+            height: 100%;
+            background: linear-gradient(135deg, var(--bg-surface-hover), var(--accent));
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            color: rgba(255,255,255,0.7); 
+            font-size: 12px; 
+            font-weight: bold;
+            text-align: center; 
+            padding: 5px; 
+            text-transform: uppercase;
+        }
+        .large-card .img-placeholder { font-size: 20px; }
+
+        /* =========================================
+           SECTIONS & HORIZONTAL SCROLL
+           ========================================= */
+        h2 { 
+            font-size: 18px; 
+            font-weight: 700; 
+            margin: 10px 20px; 
+            display: flex; 
+            align-items: center; 
+        }
+
+        .scroll-container {
+            display: flex; 
+            overflow-x: auto; 
+            gap: 12px; 
+            padding: 0 20px; 
+            scrollbar-width: none;
+        }
+        .scroll-container::-webkit-scrollbar { display: none; }
+
+        .mini-card {
+            flex: 0 0 85px; 
+            height: 85px; 
+            border-radius: 14px;
+            background-color: var(--bg-surface); 
+            cursor: pointer; 
+            overflow: hidden;
+            transition: transform 0.15s ease; 
+            position: relative;
+        }
+        .mini-card:hover { transform: scale(1.05); }
+        .mini-card img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* =========================================
+           MIXED GRID (CRAZYGAMES LAYOUT)
+           ========================================= */
+        .grid-container { padding: 0 20px; display: flex; flex-direction: column; gap: 15px; }
+        .grid-row-large { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
+        .grid-row-small { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; }
+
+        /* Large Featured Card */
+        .large-card {
+            position: relative; 
+            border-radius: 16px; 
+            overflow: hidden; 
+            aspect-ratio: 16 / 9;
+            background-color: var(--bg-surface); 
+            cursor: pointer; 
+            transition: transform 0.15s ease;
+        }
+        .large-card:hover { transform: translateY(-2px); }
+        .large-card img.bg { width: 100%; height: 100%; object-fit: cover; }
+        .large-card .overlay {
+            position: absolute; 
+            bottom: 0; 
+            left: 0; 
+            width: 100%; 
+            padding: 15px;
+            background: linear-gradient(0deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0) 100%);
+            display: flex; 
+            align-items: flex-end; 
+            justify-content: space-between; 
+            box-sizing: border-box;
+        }
+        .large-card-info { display: flex; align-items: center; gap: 10px; }
+        .large-card-icon { width: 42px; height: 42px; border-radius: 10px; object-fit: cover; overflow: hidden; }
+        .large-card-text h3 { margin: 0 0 2px 0; font-size: 15px; white-space: nowrap; }
+        .large-card-text p { margin: 0; font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; }
+        .play-btn { 
+            background-color: var(--accent); 
+            color: white; 
+            border: none; 
+            padding: 8px 18px; 
+            border-radius: 20px; 
+            font-weight: bold; 
+            font-size: 12px; 
+            cursor: pointer; 
+        }
+
+        /* Small Standard Card */
+        .small-card { cursor: pointer; transition: transform 0.15s ease; }
+        .small-card:hover { transform: translateY(-2px); }
+        .small-card-img-container {
+            width: 100%; 
+            aspect-ratio: 1; 
+            border-radius: 14px; 
+            overflow: hidden;
+            background-color: var(--bg-surface); 
+            margin-bottom: 6px; 
+            position: relative;
+        }
+        .small-card img { width: 100%; height: 100%; object-fit: cover; }
+        .small-card p { 
+            margin: 0; 
+            font-size: 12px; 
+            font-weight: 500; 
+            color: var(--text-primary); 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+        }
+
+        /* =========================================
+           BOTTOM NAVIGATION
+           ========================================= */
+        .bottom-nav {
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            width: 100%;
+            background-color: #111116; 
+            display: flex; 
+            justify-content: space-around;
+            padding: 10px 0 15px 0; 
+            border-top: 1px solid rgba(255,255,255,0.05); 
+            z-index: 100;
+        }
+        .nav-item { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            color: var(--text-secondary); 
+            font-size: 10px; 
+            cursor: pointer; 
+            gap: 4px; 
+        }
+        .nav-item.active { color: white; }
+        .nav-icon { font-size: 20px; }
+
+        /* =========================================
+           IFRAME PLAYER OVERLAY (SPA)
+           ========================================= */
+        #player-view {
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%;
+            background: #000; 
+            z-index: 2000; 
+            display: none; 
+            flex-direction: column;
+        }
+        .player-header {
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            padding: 10px 20px; 
+            background: rgba(11, 11, 14, 0.95);
+            backdrop-filter: blur(10px); 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            z-index: 2010;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .btn { 
+            padding: 8px 16px; 
+            border-radius: 8px; 
+            border: none; 
+            font-weight: bold; 
+            cursor: pointer; 
+            font-size: 13px; 
+        }
+        .btn-back { background: var(--bg-surface); color: white; }
+        .btn-action { background: var(--accent); color: white; }
+        .iframe-container { flex-grow: 1; width: 100%; height: 100%; margin-top: 55px; }
+        iframe { width: 100%; height: 100%; border: none; background: #000; }
+    </style>
+</head>
+<body>
+
+    <!-- SPA VIEW: HOME / BROWSE -->
+    <div id="home-view">
+        <header>
+            <div class="logo" onclick="resetFilters()">
+                <span class="logo-icon">🎮</span> 
+                <div>PLAYTHEM<br>GAMES</div>
+            </div>
+            <div class="auth-container">
+                <button class="auth-btn" id="google-auth-btn" onclick="handleGoogleAuth()">
+                    <img id="user-avatar" src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google">
+                    <span id="auth-text">Sign In</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="search-container">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search for Veck, Growden, arcade games...">
+        </div>
+
+        <div class="genre-scroll" id="genre-bar">
+            <!-- Dynamically populated genres -->
+        </div>
+
+        <h2>Continue playing &gt;</h2>
+        <div class="scroll-container" id="continue-playing">
+            <!-- Dynamically populated -->
+        </div>
+
+        <h2>Top picks for you</h2>
+        <div class="grid-container" id="top-picks">
+            <!-- Mixed Grid Populated by JS -->
+        </div>
+
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="resetFilters()"><span class="nav-icon">🏠</span><span>Home</span></div>
+            <div class="nav-item" onclick="document.getElementById('searchInput').focus()"><span class="nav-icon">🔍</span><span>Search</span></div>
+            <div class="nav-item"><span class="nav-icon">🔖</span><span>My games</span></div>
+            <div class="nav-item" onclick="handleGoogleAuth()"><span class="nav-icon">👤</span><span>You</span></div>
+        </div>
+    </div>
+
+    <!-- SPA VIEW: GAME PLAYER OVERLAY -->
+    <div id="player-view">
+        <div class="player-header">
+            <button class="btn btn-back" onclick="closeGame()">◀ Back to Hub</button>
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-action" onclick="openRawWindow()">↗ New Tab</button>
+                <button class="btn btn-action" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+            </div>
+        </div>
+        <div class="iframe-container">
+            <iframe id="game-frame" allow="autoplay; fullscreen; gamepad; microphone; camera; focus-without-user-activation"></iframe>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * STATE ENGINE & GAME DATABASE
+         */
+        const state = {
+            user: null,
+            searchQuery: "",
+            activeGenre: "All",
+            activeGameUrl: ""
+        };
+
+        const gamesDB = [
+            // Core Featured Games
+            { id: "growden", title: "Growden", genre: "Strategy / MMO", isFeatured: true, thumbnail: "", icon: "", url: "https://growden.io" },
+            { id: "veck", title: "Veck.io", genre: "Action / FPS", isFeatured: true, thumbnail: "", icon: "", url: "https://veck.io/" },
+            { id: "krunker", title: "Krunker.io", genre: "FPS / Multiplayer", isFeatured: true, thumbnail: "", icon: "", url: "https://krunker.io/" },
+            { id: "bloxd-io", title: "Bloxd.io", genre: "Multiplayer / Sandbox", isFeatured: true, thumbnail: "", icon: "", url: "https://bloxd.io/" },
+            { id: "ragdoll-archers", title: "Ragdoll Archers", genre: "Arcade / Action", isFeatured: true, thumbnail: "", icon: "", url: "https://archers.io/" },
+            { id: "zombs-royale", title: "Zombs Royale", genre: "Battle Royale / Action", isFeatured: true, thumbnail: "", icon: "", url: "https://zombsroyale.io/" },
+
+            // 🧩 Puzzle & Brain Games
+            { id: "2048", title: "2048", genre: "Puzzle & Brain", isFeatured: false, thumbnail: "", url: "https://play2048.co/" },
+            { id: "little-alchemy-2", title: "Little Alchemy 2", genre: "Puzzle & Brain", isFeatured: false, thumbnail: "", url: "https://littlealchemy2.com/" },
+            { id: "wordle", title: "Wordle", genre: "Puzzle & Brain", isFeatured: false, thumbnail: "", url: "https://www.nytimes.com/games/wordle/index.html" },
+            { id: "jigsaw-explorer", title: "Jigsaw Explorer", genre: "Puzzle & Brain", isFeatured: false, thumbnail: "", url: "https://www.jigsawexplorer.com/" },
+            { id: "coolmath-games", title: "Coolmath Games", genre: "Puzzle & Brain", isFeatured: false, thumbnail: "", url: "https://www.coolmathgames.com/" },
+            { id: "math-playground", title: "Math Playground", genre: "Puzzle & Brain", isFeatured: false, thumbnail: "", url: "https://www.mathplayground.com/" },
+            { id: "neal-fun", title: "Neal.fun", genre: "Puzzle & Brain", isFeatured: false, thumbnail: "", url: "https://neal.fun/" },
+            { id: "infinite-craft", title: "Infinite Craft", genre: "Puzzle & Brain", isFeatured: false, thumbnail: "", url: "https://neal.fun/infinite-craft/" },
+
+            // 🌐 Multiplayer & .IO
+            { id: "agar-io", title: "Agar.io", genre: "Multiplayer & .IO", isFeatured: false, thumbnail: "", url: "https://agar.io/" },
+            { id: "slither-io", title: "Slither.io", genre: "Multiplayer & .IO", isFeatured: false, thumbnail: "", url: "https://slither.io/" },
+            { id: "diep-io", title: "Diep.io", genre: "Multiplayer & .IO", isFeatured: false, thumbnail: "", url: "https://diep.io/" },
+            { id: "tetr-io", title: "Tetr.io", genre: "Multiplayer & .IO", isFeatured: false, thumbnail: "", url: "https://tetr.io/" },
+            { id: "skribbl-io", title: "Skribbl.io", genre: "Multiplayer & .IO", isFeatured: false, thumbnail: "", url: "https://skribbl.io/" },
+            { id: "shell-shockers", title: "Shell Shockers", genre: "Multiplayer & .IO", isFeatured: false, thumbnail: "", url: "https://shellshock.io/" },
+            { id: "paper-io-2", title: "Paper.io 2", genre: "Multiplayer & .IO", isFeatured: false, thumbnail: "", url: "https://paper-io.com/" },
+            { id: "chess-com", title: "Chess.com", genre: "Multiplayer & .IO", isFeatured: false, thumbnail: "", url: "https://www.chess.com/play" },
+            { id: "lichess", title: "Lichess", genre: "Multiplayer & .IO", isFeatured: false, thumbnail: "", url: "https://lichess.org/" },
+
+            // 🏎️ Racing & Driving
+            { id: "crazygames-racing", title: "CrazyGames Racing", genre: "Racing & Driving", isFeatured: false, thumbnail: "", url: "https://www.crazygames.com/" },
+            { id: "poki-racing", title: "Poki Racing", genre: "Racing & Driving", isFeatured: false, thumbnail: "", url: "https://poki.com/" },
+            { id: "miniclip", title: "Miniclip", genre: "Racing & Driving", isFeatured: false, thumbnail: "", url: "https://www.miniclip.com/" },
+            { id: "y8-racing", title: "Y8 Games", genre: "Racing & Driving", isFeatured: false, thumbnail: "", url: "https://www.y8.com/" },
+            { id: "silvergames", title: "SilverGames", genre: "Racing & Driving", isFeatured: false, thumbnail: "", url: "https://www.silvergames.com/" },
+            { id: "onlinegames-io", title: "OnlineGames.io", genre: "Racing & Driving", isFeatured: false, thumbnail: "", url: "https://www.onlinegames.io/" },
+            { id: "smash-karts", title: "Smash Karts", genre: "Racing & Driving", isFeatured: false, thumbnail: "", url: "https://smashkarts.io/" },
+            { id: "moto-x3m", title: "Moto X3M", genre: "Racing & Driving", isFeatured: false, thumbnail: "", url: "https://motox3m.co" },
+
+            // 🎯 Action & Arcade
+            { id: "armor-games", title: "Armor Games", genre: "Action & Arcade", isFeatured: false, thumbnail: "", url: "https://armorgames.com/" },
+            { id: "addicting-games", title: "Addicting Games", genre: "Action & Arcade", isFeatured: false, thumbnail: "", url: "https://www.addictinggames.com/" },
+            { id: "newgrounds", title: "Newgrounds", genre: "Action & Arcade", isFeatured: false, thumbnail: "", url: "https://www.newgrounds.com/games" },
+            { id: "kongregate", title: "Kongregate", genre: "Action & Arcade", isFeatured: false, thumbnail: "", url: "https://www.kongregate.com/" },
+            { id: "gamepix", title: "GamePix", genre: "Action & Arcade", isFeatured: false, thumbnail: "", url: "https://www.gamepix.com/" },
+            { id: "lagged", title: "Lagged", genre: "Action & Arcade", isFeatured: false, thumbnail: "", url: "https://lagged.com/" },
+            { id: "friv", title: "Friv", genre: "Action & Arcade", isFeatured: false, thumbnail: "", url: "https://www.friv.com/" },
+            { id: "kizi", title: "Kizi", genre: "Action & Arcade", isFeatured: false, thumbnail: "", url: "https://kizi.com/" },
+            { id: "stickman-clash", title: "Stickman Clash", genre: "Action & Arcade", isFeatured: false, thumbnail: "", url: "https://game-embed.com/stickman-clash" },
+            { id: "1v1-lol", title: "1v1.lol", genre: "Action & Arcade", isFeatured: false, thumbnail: "", url: "https://1v1.lol/" },
+            { id: "venge-io", title: "Venge.io", genre: "Action & Arcade", isFeatured: false, thumbnail: "", url: "https://venge.io/" },
+            { id: "slope", title: "Slope", genre: "Action & Arcade", isFeatured: false, thumbnail: "", url: "https://slopegame.io" },
+
+            // 🗺️ Adventure & Exploration
+            { id: "itch-io", title: "Itch.io Games", genre: "Adventure & Exploration", isFeatured: false, thumbnail: "", url: "https://itch.io/games" },
+            { id: "game-jolt", title: "Game Jolt", genre: "Adventure & Exploration", isFeatured: false, thumbnail: "", url: "https://gamejolt.com/" },
+            { id: "pog", title: "Pog", genre: "Adventure & Exploration", isFeatured: false, thumbnail: "", url: "https://www.pog.com/" },
+            { id: "a10-games", title: "A10 Games", genre: "Adventure & Exploration", isFeatured: false, thumbnail: "", url: "https://www.a10.com/" },
+            { id: "not-doppler", title: "Not Doppler", genre: "Adventure & Exploration", isFeatured: false, thumbnail: "", url: "https://www.notdoppler.com/" },
+            { id: "free-games-org", title: "FreeGames.org", genre: "Adventure & Exploration", isFeatured: false, thumbnail: "", url: "https://www.freegames.org/" },
+
+            // 🌍 Geography & Trivia
+            { id: "geoguessr", title: "GeoGuessr", genre: "Geography & Trivia", isFeatured: false, thumbnail: "", url: "https://www.geoguessr.com/" },
+            { id: "hooda-math", title: "Hooda Math", genre: "Geography & Trivia", isFeatured: false, thumbnail: "", url: "https://www.hoodamath.com/" },
+            { id: "abcya", title: "ABCya!", genre: "Geography & Trivia", isFeatured: false, thumbnail: "", url: "https://www.abcya.com/" },
+            { id: "primarygames", title: "PrimaryGames", genre: "Geography & Trivia", isFeatured: false, thumbnail: "", url: "https://www.primarygames.com/" },
+
+            // 🎨 Creative & Weird
+            { id: "quick-draw", title: "Quick, Draw!", genre: "Creative & Weird", isFeatured: false, thumbnail: "", url: "https://quickdraw.withgoogle.com/" },
+            { id: "cookie-clicker", title: "Cookie Clicker", genre: "Creative & Weird", isFeatured: false, thumbnail: "", url: "https://orteil.dashnet.org/cookieclicker/" },
+            { id: "funbrain", title: "Funbrain", genre: "Creative & Weird", isFeatured: false, thumbnail: "", url: "https://www.funbrain.com/" },
+            { id: "google-doodles", title: "Google Doodles", genre: "Creative & Weird", isFeatured: false, thumbnail: "", url: "https://www.google.com/doodles" },
+
+            // 🏆 Huge Game Collections & Extras
+            { id: "scary-teacher-3d", title: "Scary Teacher 3D", genre: "Horror", isFeatured: false, thumbnail: "", url: "https://horrorgames.io/scary-teacher-3d.embed" },
+            { id: "man-from-window", title: "Man From Window", genre: "Horror", isFeatured: false, thumbnail: "", url: "https://horrorgames.io/the-man-from-the-window.embed" },
+            { id: "red-face-horror", title: "Red Face Horror", genre: "Horror", isFeatured: false, thumbnail: "", url: "https://horrorgames.io/red-face-horror.embed" },
+            { id: "thief-puzzle", title: "Thief Puzzle", genre: "Puzzle & Brain", isFeatured: false, thumbnail: "", url: "https://game-embed.com/thief-puzzle" }
+        ];
+
+        const genres = ["All", ...new Set(gamesDB.map(g => g.genre.split('/')[0].trim()))];
+
+        const continueEl = document.getElementById('continue-playing');
+        const gridEl = document.getElementById('top-picks');
+        const genreBarEl = document.getElementById('genre-bar');
+        const searchInput = document.getElementById('searchInput');
+        const homeView = document.getElementById('home-view');
+        const playerView = document.getElementById('player-view');
+        const gameFrame = document.getElementById('game-frame');
+
+        /**
+         * GOOGLE AUTHENTICATION SYSTEM
+         */
+        function parseJwt(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(c => 
+                    '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+                ).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                console.error("Failed to parse JWT", e);
+                return null;
+            }
+        }
+
+        function handleGoogleAuth() {
+            if (state.user) {
+                state.user = null;
+                document.getElementById('auth-text').innerText = "Sign In";
+                document.getElementById('user-avatar').src = "https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg";
+                alert("You have logged out.");
+            } else {
+                if (window.google && google.accounts) {
+                    google.accounts.id.initialize({
+                        client_id: "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
+                        callback: handleGoogleCredentialResponse,
+                        auto_select: false,
+                        cancel_on_tap_outside: true
+                    });
+                    
+                    google.accounts.id.prompt((notification) => {
+                        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                            fallbackAuth();
+                        }
+                    });
+                } else {
+                    fallbackAuth();
+                }
+            }
+        }
+
+        function handleGoogleCredentialResponse(response) {
+            const payload = parseJwt(response.credential);
+            if (payload) {
+                state.user = { 
+                    name: payload.given_name || payload.name, 
+                    picture: payload.picture,
+                    email: payload.email
+                };
+                
+                document.getElementById('auth-text').innerText = state.user.name;
+                document.getElementById('user-avatar').src = state.user.picture;
+            }
+        }
+
+        function fallbackAuth() {
+            state.user = { name: "GamerOne", picture: "https://api.dicebear.com/7.x/bottts/svg?seed=GamerOne" };
+            document.getElementById('auth-text').innerText = state.user.name;
+            document.getElementById('user-avatar').src = state.user.picture;
+        }
+
+        /**
+         * RENDERING ENGINE
+         */
+        function renderGenres() {
+            genreBarEl.innerHTML = genres.map(genre => `
+                <button class="genre-chip ${state.activeGenre === genre ? 'active' : ''}" onclick="setGenre('${genre}')">
+                    ${genre}
+                </button>
+            `).join('');
+        }
+
+        function renderUI() {
+            const query = state.searchQuery.toLowerCase();
+            const filteredGames = gamesDB.filter(g => {
+                const matchesGenre = state.activeGenre === "All" || g.genre.toLowerCase().includes(state.activeGenre.toLowerCase());
+                const matchesQuery = g.title.toLowerCase().includes(query) || g.genre.toLowerCase().includes(query);
+                return matchesGenre && matchesQuery;
+            });
+
+            continueEl.innerHTML = filteredGames.map(game => {
+                const imgTag = game.thumbnail ? `<img src="${game.thumbnail}" alt="${game.title}" loading="lazy">` : `<div class="img-placeholder">${game.title.charAt(0)}</div>`;
+                return `
+                <div class="mini-card" onclick="openGame('${game.id}')" title="${game.title}">
+                    ${imgTag}
+                </div>`;
+            }).join('');
+
+            let gridHTML = "";
+            let largeCards = filteredGames.filter(g => g.isFeatured);
+            let smallCards = filteredGames.filter(g => !g.isFeatured);
+
+            if (largeCards.length > 0) {
+                gridHTML += `<div class="grid-row-large">`;
+                largeCards.slice(0, 2).forEach(game => gridHTML += generateLargeCardHTML(game));
+                gridHTML += `</div>`;
+            }
+
+            if (smallCards.length > 0) {
+                gridHTML += `<div class="grid-row-small">`;
+                smallCards.forEach(game => gridHTML += generateSmallCardHTML(game));
+                gridHTML += `</div>`;
+            }
+
+            if (largeCards.length > 2) {
+                gridHTML += `<div class="grid-row-large">`;
+                largeCards.slice(2).forEach(game => gridHTML += generateLargeCardHTML(game));
+                gridHTML += `</div>`;
+            }
+
+            gridEl.innerHTML = gridHTML || `<p style="color:var(--text-secondary); text-align:center; padding:40px 0;">No games found matching your search.</p>`;
+        }
+
+        function generateLargeCardHTML(game) {
+            const bgTag = game.thumbnail ? `<img class="bg" src="${game.thumbnail}" alt="${game.title}" loading="lazy">` : `<div class="img-placeholder">${game.title}</div>`;
+            const iconTag = game.icon ? `<img class="large-card-icon" src="${game.icon}" alt="Icon">` : `<div class="large-card-icon"><div class="img-placeholder" style="font-size:14px;">${game.title.charAt(0)}</div></div>`;
+            
+            return `
+                <div class="large-card" onclick="openGame('${game.id}')">
+                    ${bgTag}
+                    <div class="overlay">
+                        <div class="large-card-info">
+                            ${iconTag}
+                            <div class="large-card-text">
+                                <h3>${game.title}</h3>
+                                <p>${game.genre}</p>
+                            </div>
+                        </div>
+                        <button class="play-btn">Play Now</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateSmallCardHTML(game) {
+            const imgTag = game.thumbnail ? `<img src="${game.thumbnail}" alt="${game.title}" loading="lazy">` : `<div class="img-placeholder">${game.title.charAt(0)}</div>`;
+            return `
+                <div class="small-card" onclick="openGame('${game.id}')">
+                    <div class="small-card-img-container">
+                        ${imgTag}
+                    </div>
+                    <p>${game.title}</p>
+                </div>
+            `;
+        }
+
+        function setGenre(genre) {
+            state.activeGenre = genre;
+            renderGenres();
+            renderUI();
+        }
+
+        function resetFilters() {
+            state.activeGenre = "All";
+            state.searchQuery = "";
+            searchInput.value = "";
+            renderGenres();
+            renderUI();
+        }
+
+        let searchTimeout;
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                state.searchQuery = e.target.value;
+                renderUI();
+            }, 200);
+        });
+
+        function openGame(id) {
+            const game = gamesDB.find(g => g.id === id);
+            if (!game || !game.url) return;
+
+            state.activeGameUrl = game.url;
+            gameFrame.src = game.url;
+            
+            homeView.style.display = 'none';
+            playerView.style.display = 'flex';
+        }
+
+        function closeGame() {
+            gameFrame.src = ""; 
+            state.activeGameUrl = "";
+            playerView.style.display = 'none';
+            homeView.style.display = 'block';
+        }
+
+        function toggleFullscreen() {
+            if (gameFrame.requestFullscreen) { gameFrame.requestFullscreen(); }
+            else if (gameFrame.webkitRequestFullscreen) { gameFrame.webkitRequestFullscreen(); }
+        }
+
+        function openRawWindow() {
+            if (state.activeGameUrl) {
+                window.open(state.activeGameUrl, '_blank');
+            }
+        }
+
+        // App Initialization
+        renderGenres();
+        renderUI();
+    </script>
+</body>
+</html>
+
